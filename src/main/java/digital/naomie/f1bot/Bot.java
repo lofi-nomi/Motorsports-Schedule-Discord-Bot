@@ -18,7 +18,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Bot extends ListenerAdapter {
-        public final static String versionName = "Dubawnt";
         private static final Logger logger = LoggerFactory.getLogger(Bot.class);
 
         public static void main(String[] args) throws LoginException, InterruptedException {
@@ -62,7 +61,6 @@ public class Bot extends ListenerAdapter {
                                 .addOption(OptionType.STRING, "round",
                                                 "The F1 Academy Round Number or F1 Academy Race name, leave blank for next F1 Academy race"));
 
-                globalCommandList.add(new CommandData("version", "Displays debug information"));
 
                 jda.awaitReady();
                 jda.updateCommands().addCommands(globalCommandList).queue();
