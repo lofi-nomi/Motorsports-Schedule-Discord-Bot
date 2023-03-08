@@ -1,0 +1,33 @@
+plugins {
+    id 'com.github.johnrengelman.shadow' version '7.0.0'
+    id 'java'
+}
+
+group 'digital.naomie'
+version '2.0.0'
+repositories {
+    mavenCentral()
+    maven {
+        name 'm2-dv8tion'
+        url 'https://m2.dv8tion.net/releases'
+    }
+}
+
+shadowJar{
+    archiveFileName = 'F1Bot.jar'
+}
+jar {
+    manifest {
+        attributes(
+                'Main-Class': 'digital.naomie.f1bot.Bot',
+        )
+    }
+}
+dependencies {
+    implementation("net.dv8tion:JDA:4.4.0_350")
+    implementation('com.googlecode.json-simple:json-simple:1.1.1')
+    implementation("org.xerial:sqlite-jdbc:3.36.0.3")
+    implementation("ch.qos.logback:logback-classic:1.2.3")
+    implementation("org.apache.httpcomponents:httpclient:4.5.13")
+    implementation("org.apache.httpcomponents:httpcore:4.4.1")
+}
