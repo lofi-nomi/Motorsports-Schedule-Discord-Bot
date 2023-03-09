@@ -132,7 +132,7 @@ public class ScheduleCommand extends ListenerAdapter {
         if (raceJSONObject.containsKey("sessions")) {
             replyBuilder.setTitle(String.format("**%s %s Grand Prix**", seriesMap.get(event.getName()).getName(), raceJSONObject.get("name")));
             replyBuilder.addField("Location", raceJSONObject.get("location").toString(), true);
-            File seriesLogo = new File(seriesMap.get(event.getName()).getLogo());
+            File seriesLogo = new File("images/" + seriesMap.get(event.getName()).getLogo());
             replyBuilder.setThumbnail("attachment://" + seriesMap.get(event.getName()).getLogo());
             replyBuilder.setColor(Color.decode(seriesMap.get(event.getName()).getColor()));
             List<Object> sessionList = new ArrayList<>(session.keySet());
@@ -164,8 +164,7 @@ public class ScheduleCommand extends ListenerAdapter {
                 default ->
                     replyBuilder.setFooter(String.format("This is the %dth Grand Prix of %d total this season", roundInteger, totalRaces));
             }
-            event.getHook().sendFile(seriesLogo, seriesMap.get(event.getName()).getLogo()).queue(
-                    message -> event.getHook().sendMessageEmbeds(replyBuilder.build()).queue());
+            event.getHook().sendMessageEmbeds(replyBuilder.build()).addFile(seriesLogo, seriesMap.get(event.getName()).getLogo()).queue();
             return;
         }
     }

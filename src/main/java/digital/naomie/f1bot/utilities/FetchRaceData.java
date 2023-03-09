@@ -24,7 +24,7 @@ public class FetchRaceData {
     private static Map<String, JSONArray> seriesMap = new HashMap<>();
     public static JSONArray getRace(String series, String seriesUrl, int currentYear) throws IOException, ParseException {
         logger.debug(seriesUrl);
-        if (lastFetchMap.containsKey(series) && Duration.between(lastFetchMap.get(series), LocalDateTime.now()).get(ChronoUnit.DAYS) < 1) {
+        if (lastFetchMap.containsKey(series) && Duration.between(lastFetchMap.get(series), LocalDateTime.now()).toDays() < 1) {
             return seriesMap.get(series);
         }
         logger.debug("Fetching new data");

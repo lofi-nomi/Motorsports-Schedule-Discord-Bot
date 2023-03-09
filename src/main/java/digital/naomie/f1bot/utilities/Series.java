@@ -26,7 +26,7 @@ public class Series {
     }
 
     public String getLogo() {
-        return String.format("/images/%s", logo);
+        return logo;
     }
 
 }
