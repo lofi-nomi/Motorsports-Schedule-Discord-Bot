@@ -3,15 +3,17 @@ package digital.naomie.f1bot.commands;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import digital.naomie.f1bot.utilities.FetchRaceData;
+import digital.naomie.f1bot.utilities.Series;
+
 import static digital.naomie.f1bot.utilities.CommonUtilities.isNumeric;
 
+import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
 import java.time.Instant;
@@ -29,18 +31,18 @@ import java.awt.Color;
 public class ScheduleCommand extends ListenerAdapter {
 
     private static final Logger logger = LoggerFactory.getLogger(ScheduleCommand.class);
-    private Map<String, String> seriesMap = new HashMap<>();
+    private static final Map<String, Series> seriesMap = new HashMap<>();
 
-    public ScheduleCommand(){
-        seriesMap.put("f1", "https://f1calendar.com");
-        seriesMap.put("f2", "https://f2cal.com");
-        seriesMap.put("f3", "https://f3calendar.com");
-        seriesMap.put("fe", "https://formulaecal.com");
-        seriesMap.put("wseries", "https://wseriescal.com");
-        seriesMap.put("exe", "https://extremeecalendar.com");
-        seriesMap.put("indy", "https://indycarcalendar.com");
-        seriesMap.put("moto", "https://motogpcal.com");
-        seriesMap.put("f1a", "https://f1academycalendar.com");
+    public ScheduleCommand() {
+        seriesMap.put("f1", new Series("https://f1calendar.com", "Formula 1", "0xee0000", "f1.png"));
+        seriesMap.put("f2", new Series("https://f2cal.com", "Formula 2", "0x0090d0", "f2.png"));
+        seriesMap.put("f3", new Series("https://f3calendar.com", "Formula 3", "0xe90300", "f3.png"));
+        seriesMap.put("fe", new Series("https://formulaecal.com", "Formula E", "0x14b7ed", "fe.png"));
+        seriesMap.put("wseries", new Series("https://wseriescal.com", "W Series", "0x451b94", "wseries.png"));
+        seriesMap.put("exe", new Series("https://extremeecalendar.com", "Extreme E", "0x00ff9c", "exe.png"));
+        seriesMap.put("indy", new Series("https://indycarcalendar.com", "IndyCar", "0xe2221c", "indy.png"));
+        seriesMap.put("moto", new Series("https://motogpcal.com", "MotoGP", "0xd90042", "moto.png"));
+        seriesMap.put("f1a", new Series("https://f1academycalendar.com", "F1 Academy", "0x9e2d99", "f1a.png"));
     }
 
     @Override
@@ -54,8 +56,7 @@ public class ScheduleCommand extends ListenerAdapter {
     public void processCommand(SlashCommandEvent event) {
         JSONArray seriesArray;
         try {
-            logger.debug("Series map: %s".formatted(seriesMap.get(event.getName())));
-            seriesArray = FetchRaceData.getRace(event.getName(), seriesMap.get(event.getName()), LocalDate.now().getYear());
+            seriesArray = FetchRaceData.getRace(event.getName(), seriesMap.get(event.getName()).getUrl(), LocalDate.now().getYear());
             logger.debug("Series array: %s".formatted(seriesArray.toString()));
             calculateRound(event,seriesArray, event.getOptions().size() > 0 ? event.getOptions().get(0).getAsString() : "current");
 
@@ -129,9 +130,11 @@ public class ScheduleCommand extends ListenerAdapter {
         JSONObject session = (JSONObject) raceJSONObject.get("sessions");
         logger.debug("Schedule Reply Method");
         if (raceJSONObject.containsKey("sessions")) {
-            replyBuilder.setTitle(String.format("**%s Grand Prix**", raceJSONObject.get("name")));
+            replyBuilder.setTitle(String.format("**%s %s Grand Prix**", seriesMap.get(event.getName()).getName(), raceJSONObject.get("name")));
             replyBuilder.addField("Location", raceJSONObject.get("location").toString(), true);
-            replyBuilder.setColor(Color.RED);
+            File seriesLogo = new File("images/" + seriesMap.get(event.getName()).getLogo());
+            replyBuilder.setThumbnail("attachment://" + seriesMap.get(event.getName()).getLogo());
+            replyBuilder.setColor(Color.decode(seriesMap.get(event.getName()).getColor()));
             List<Object> sessionList = new ArrayList<>(session.keySet());
 
             Collections.sort(sessionList, new Comparator<Object>() {
@@ -161,7 +164,7 @@ public class ScheduleCommand extends ListenerAdapter {
                 default ->
                     replyBuilder.setFooter(String.format("This is the %dth Grand Prix of %d total this season", roundInteger, totalRaces));
             }
-            event.getHook().sendMessageEmbeds(replyBuilder.build()).queue();
+            event.getHook().sendMessageEmbeds(replyBuilder.build()).addFile(seriesLogo, seriesMap.get(event.getName()).getLogo()).queue();
             return;
         }
     }
