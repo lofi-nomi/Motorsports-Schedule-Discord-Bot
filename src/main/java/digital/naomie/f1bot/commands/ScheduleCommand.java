@@ -35,6 +35,7 @@ public class ScheduleCommand extends ListenerAdapter {
 
     public ScheduleCommand() {
         seriesMap.put("f1", new Series("https://f1calendar.com", "Formula 1", "0xee0000", "f1.png"));
+        seriesMap.put("race", new Series("https://f1calendar.com", "Formula 1", "0xee0000", "f1.png"));
         seriesMap.put("f2", new Series("https://f2cal.com", "Formula 2", "0x0090d0", "f2.png"));
         seriesMap.put("f3", new Series("https://f3calendar.com", "Formula 3", "0xe90300", "f3.png"));
         seriesMap.put("fe", new Series("https://formulaecal.com", "Formula E", "0x14b7ed", "fe.png"));
@@ -70,6 +71,7 @@ public class ScheduleCommand extends ListenerAdapter {
         }
     }
 
+    @SuppressWarnings("unchecked")
     public void calculateRound(SlashCommandEvent event, JSONArray series, String optionString){
         if (optionString.toLowerCase().equals("current")) {
             logger.debug("Current race");
@@ -122,6 +124,7 @@ public class ScheduleCommand extends ListenerAdapter {
                 }
             }
         }
+        event.getHook().sendMessage(String.format("%s is not a valid round selection", optionString)).queue();
     }
 
     public static void scheduleReply(SlashCommandEvent event, JSONObject raceJSONObject, int totalRaces) {
