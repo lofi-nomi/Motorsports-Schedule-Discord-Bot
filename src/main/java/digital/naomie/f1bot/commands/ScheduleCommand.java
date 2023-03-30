@@ -125,7 +125,7 @@ public class ScheduleCommand extends ListenerAdapter {
                 }
             }
         }
-        event.getHook().sendMessage(String.format("%s is not a valid round selection", optionString)).queue();
+        event.getHook().sendMessage(String.format("%s is not a valid round selection", optionString)).setEphemeral(true).queue();
     }
 
     public static void scheduleReply(SlashCommandEvent event, JSONObject raceJSONObject, int totalRaces) {
