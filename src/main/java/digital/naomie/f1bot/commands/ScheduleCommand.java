@@ -93,6 +93,7 @@ public class ScheduleCommand extends ListenerAdapter {
                 }
             }
             scheduleReply(event, current, series.size());
+            return;
         }
         int roundNumber = -99;
         if (isNumeric(optionString)) {
