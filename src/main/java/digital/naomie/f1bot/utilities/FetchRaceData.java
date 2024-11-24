@@ -20,8 +20,8 @@ import org.slf4j.LoggerFactory;
 
 public class FetchRaceData {
     private static final Logger logger = LoggerFactory.getLogger(FetchRaceData.class);
-    private static Map<String, LocalDateTime> lastFetchMap = new HashMap<>();
-    private static Map<String, JSONArray> seriesMap = new HashMap<>();
+    private static final Map<String, LocalDateTime> lastFetchMap = new HashMap<>();
+    private static final Map<String, JSONArray> seriesMap = new HashMap<>();
     public static JSONArray getRace(String series, String seriesUrl, int currentYear) throws IOException, ParseException {
         logger.debug(seriesUrl);
         if (lastFetchMap.containsKey(series) && Duration.between(lastFetchMap.get(series), LocalDateTime.now()).toDays() < 1) {

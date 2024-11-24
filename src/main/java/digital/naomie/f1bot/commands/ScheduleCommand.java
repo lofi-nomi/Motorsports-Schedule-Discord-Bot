@@ -1,8 +1,9 @@
 package digital.naomie.f1bot.commands;
 
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.utils.*;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -19,7 +20,6 @@ import java.text.ParseException;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -47,33 +47,29 @@ public class ScheduleCommand extends ListenerAdapter {
     }
 
     @Override
-    public void onSlashCommand(SlashCommandEvent event) {
+    public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
         if (seriesMap.containsKey(event.getName())) {
             logger.debug("Schedule command %s".formatted(event.getName()));
             event.deferReply().queue();
             processCommand(event);
         }
     }
-    public void processCommand(SlashCommandEvent event) {
+    public void processCommand(SlashCommandInteractionEvent event) {
         JSONArray seriesArray;
         try {
             seriesArray = FetchRaceData.getRace(event.getName(), seriesMap.get(event.getName()).getUrl(), LocalDate.now().getYear());
-            logger.debug("Series array: %s".formatted(seriesArray.toString()));
-            calculateRound(event,seriesArray, event.getOptions().size() > 0 ? event.getOptions().get(0).getAsString() : "current");
+            logger.debug("Series array: %s".formatted(seriesArray != null ? seriesArray.toString() : null));
+            calculateRound(event,seriesArray, !event.getOptions().isEmpty() ? event.getOptions().get(0).getAsString() : "current");
 
-        } catch (IOException e) {
+        } catch (IOException | ParseException e) {
             logger.error(e.toString());
             e.printStackTrace();
-        } catch (ParseException e) {
-            logger.error(e.toString());
-            e.printStackTrace();
-
         }
     }
 
     @SuppressWarnings("unchecked")
-    public void calculateRound(SlashCommandEvent event, JSONArray series, String optionString){
-        if (optionString.toLowerCase().equals("current")) {
+    public void calculateRound(SlashCommandInteractionEvent event, JSONArray series, String optionString){
+        if (optionString.equalsIgnoreCase("current")) {
             logger.debug("Current race");
             Instant currentInstant = Instant.now();
             long closest = Long.MAX_VALUE;
@@ -81,9 +77,7 @@ public class ScheduleCommand extends ListenerAdapter {
             for (Object raceObject : series) {
                 JSONObject raceJSONObject = (JSONObject) raceObject;
                 JSONObject session = (JSONObject) raceJSONObject.get("sessions");
-                Iterator<String> keys = session.keySet().iterator();
-                while(keys.hasNext()){
-                    String key = keys.next();
+                for (String key : (Iterable<String>) session.keySet()) {
                     String value = session.get(key).toString();
                     Instant sessionInstant = Instant.parse(value);
                     if (sessionInstant.isAfter(currentInstant) && sessionInstant.toEpochMilli() - currentInstant.toEpochMilli() < closest) {
@@ -92,7 +86,9 @@ public class ScheduleCommand extends ListenerAdapter {
                     }
                 }
             }
-            scheduleReply(event, current, series.size());
+            if (current != null) {
+                scheduleReply(event, current, series.size());
+            }
             return;
         }
         int roundNumber = -99;
@@ -128,10 +124,11 @@ public class ScheduleCommand extends ListenerAdapter {
         event.getHook().sendMessage(String.format("%s is not a valid round selection", optionString)).setEphemeral(true).queue();
     }
 
-    public static void scheduleReply(SlashCommandEvent event, JSONObject raceJSONObject, int totalRaces) {
+    public static void scheduleReply(SlashCommandInteractionEvent event, JSONObject raceJSONObject, int totalRaces) {
         EmbedBuilder replyBuilder = new EmbedBuilder();
         totalRaces++;
         JSONObject session = (JSONObject) raceJSONObject.get("sessions");
+        logger.debug("Session Object %s".formatted(session.toString()));
         logger.debug("Schedule Reply Method");
         if (raceJSONObject.containsKey("sessions")) {
             replyBuilder.setTitle(String.format("**%s %s Grand Prix**", seriesMap.get(event.getName()).getName(), raceJSONObject.get("name")));
@@ -141,7 +138,7 @@ public class ScheduleCommand extends ListenerAdapter {
             replyBuilder.setColor(Color.decode(seriesMap.get(event.getName()).getColor()));
             List<Object> sessionList = new ArrayList<>(session.keySet());
 
-            Collections.sort(sessionList, new Comparator<Object>() {
+            sessionList.sort(new Comparator<Object>() {
                 public int compare(Object o1, Object o2) {
                     Instant sessionDate1 = Instant.parse((CharSequence) session.get(o1.toString()));
                     Instant sessionDate2 = Instant.parse((CharSequence) session.get(o2.toString()));
@@ -168,7 +165,7 @@ public class ScheduleCommand extends ListenerAdapter {
                 default ->
                     replyBuilder.setFooter(String.format("This is the %dth Grand Prix of %d total this season", roundInteger, totalRaces));
             }
-            event.getHook().sendMessageEmbeds(replyBuilder.build()).addFile(seriesLogo, seriesMap.get(event.getName()).getLogo()).queue();
+            event.getHook().sendMessageEmbeds(replyBuilder.build()).addFiles(FileUpload.fromData(seriesLogo)).queue();
             return;
         }
     }

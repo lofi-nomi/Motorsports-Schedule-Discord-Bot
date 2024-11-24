@@ -4,13 +4,10 @@ plugins {
 }
 
 group 'digital.naomie'
-version '2.1.1'
+version '3.0.0'
 repositories {
     mavenCentral()
-    maven {
-        name 'm2-dv8tion'
-        url 'https://m2.dv8tion.net/releases'
-    }
+    maven {url 'https://jitpack.io'}
 }
 
 shadowJar{
@@ -24,10 +21,9 @@ jar {
     }
 }
 dependencies {
-    implementation("net.dv8tion:JDA:4.4.0_350")
+    implementation("com.github.freya022:JDA:7c7d09b")
     implementation('com.googlecode.json-simple:json-simple:1.1.1')
-    implementation("org.xerial:sqlite-jdbc:3.36.0.3")
-    implementation("ch.qos.logback:logback-classic:1.2.3")
+    implementation("ch.qos.logback:logback-classic:1.5.4")
     implementation("org.apache.httpcomponents:httpclient:4.5.13")
     implementation("org.apache.httpcomponents:httpcore:4.4.1")
 }
